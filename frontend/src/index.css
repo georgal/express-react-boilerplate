@@ -58,6 +58,20 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.btn-blue {
+  @apply bg-blue-500 text-white px-4 py-2 rounded;
+}
+.btn-green {
+  @apply bg-green-500 text-white px-4 py-2 rounded;
+}
+.btn-yellow {
+  @apply bg-yellow-500 text-white px-4 py-2 rounded;
+}
+.btn-purple {
+  @apply bg-purple-500 text-white px-4 py-2 rounded;
+}
+
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
