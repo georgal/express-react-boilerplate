@@ -87,7 +87,13 @@ All routes are prefixed with `/api/auth`
 | POST   | `/register`  | Register user      |
 | POST   | `/login`     | Log in, set cookie |
 | POST   | `/logout`    | Clear auth cookie  |
-| GET    | `/protected` | Protected resource |
+
+
+All routes are prefixed with `/api/protected`
+
+| Method | Endpoint     | Description        |
+| ------ | ------------ | ------------------ |
+| GET    | `/hasAccess` | Protected resource |
 
 ---
 

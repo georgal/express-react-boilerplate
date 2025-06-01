@@ -1,11 +1,16 @@
+// Packages
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-const authRoutes = require('./routes/auth');
 
+// Routes
+const authRoutes = require('./routes/auth');
+const protectedRoutes = require('./routes/protected');
+
+// App
 const app = express();
 
 // Middleware
@@ -30,11 +35,12 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.get('/api/test', (req, res) => {
-  res.send('API working');
+  res.json({ message: `API running` });
 });
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/protected', protectedRoutes);
 
 // Start server (no DB)
 app.listen(process.env.PORT || 5050, () => {

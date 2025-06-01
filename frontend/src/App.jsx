@@ -11,7 +11,7 @@ function App() {
 
   const testApi = async () => {
     axios.get('/api/test')
-    .then(res => console.log(res.data))
+    .then(res => setMessage(res.data.message))
     .catch(err => console.error(err));
   }
 
@@ -43,9 +43,9 @@ function App() {
     }
   };
 
-  const getProtected = async () => {
+  const checkAccess = async () => {
     try {
-      const res = await axios.get('/api/auth/protected', { withCredentials: true });
+      const res = await axios.get('/api/protected/hasAccess', { withCredentials: true });
       setMessage(res.data.message);
     } catch (err) {
       setMessage(err.response.data.error || 'Access denied');
@@ -79,7 +79,7 @@ function App() {
       <button onClick={register} className="bg-blue-500 text-white px-4 py-2 rounded m-2">Register</button>
       <button onClick={login} className="bg-green-500 text-white px-4 py-2 rounded m-2">Login</button>
       <button onClick={logout} className="bg-yellow-500 text-white px-4 py-2 rounded m-2">Logout</button>
-      <button onClick={getProtected} className="bg-purple-500 text-white px-4 py-2 rounded m-2">Protected</button>
+      <button onClick={checkAccess} className="bg-purple-500 text-white px-4 py-2 rounded m-2">Check Access</button>
 
       <p>{message}</p>
     </div>
