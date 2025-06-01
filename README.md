@@ -1,23 +1,25 @@
 # Express + React Auth Boilerplate (for playtime apps)
 
 ## Folder Overview
+
 ```
 express-react-secured-boilerplate/
 ├── backend/
 │   ├── controllers/        # Auth logic abstraction
 │   ├── middleware/         # JWT middleware, guards
 │   ├── models/             # MongoDB (Mongoose models)
-│   ├── services/           # Separate memory-db logics
+│   ├── services/           # Separate memory-db logic
 │   ├── routes/
 │   │   ├── auth.js         # auth routes
 │   ├── index.js            # Unified entry (Mongo or in-memory)
 │   └── ...
 └── frontend/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── pages/
-│   └── services/        # Axios and API helpers
+    ├── src/
+    │   ├── assets/
+    │   ├── components/     # UI and utility components (e.g. AccessGate)
+    │   ├── context/        # React Context (AccessProvider)
+    │   ├── pages/
+    │   └── services/       # Axios and API helpers
 ```
 
 ---
@@ -57,7 +59,7 @@ Set `USE_MONGO=true` to enable MongoDB.
 #### Option A: In-memory mode
 
 ```bash
-# Uses array-based user storage
+# Uses in-memory array for user storage
 cd backend
 node index.js
 ```
@@ -69,7 +71,7 @@ node index.js
 USE_MONGO=true node index.js
 ```
 
-> You can also set `USE_MONGO=true` in your `.env`.
+> Alternatively, set `USE_MONGO=true` in your `.env`.
 
 ---
 
@@ -80,7 +82,16 @@ cd frontend
 npm run dev
 ```
 
-Visit: [http://localhost:5173](http://localhost:5173)
+Open [http://localhost:5173](http://localhost:5173)
+
+---
+
+## Frontend Access Control Architecture
+
+* **AccessProvider** (React Context) manages global auth/access state (`hasAccess`, `loading`, etc.) and refreshes access status on app load.
+* **AccessGate** (Component) wraps parts of the app to **show a loading indicator** while access status is being verified, preventing UI flickers or unauthorized content flashes.
+* **PrivateRoute** component guards protected pages by checking `hasAccess` and redirects unauthorized users.
+* All components consume `useAccess()` hook to read and update access state.
 
 ---
 
@@ -96,11 +107,11 @@ Visit: [http://localhost:5173](http://localhost:5173)
 
 ### `/api/protected` (Guarded)
 
-| Method | Route      | Description              |
-| ------ | ---------- | ------------------------ |
-| GET    | /hasAccess | Protected resource (JWT) |
+| Method | Route      | Description                 |
+| ------ | ---------- | --------------------------- |
+| GET    | /hasAccess | Checks if user is logged in |
 
-> ✅ Cookies are `HttpOnly`, `SameSite=Strict`, and sent with requests (`withCredentials: true`).
+> Cookies are set as `HttpOnly`, `SameSite=Strict`, and sent with all requests (`withCredentials: true`).
 
 ---
 
@@ -108,49 +119,50 @@ Visit: [http://localhost:5173](http://localhost:5173)
 
 1. ✅ Register → creates user
 2. ✅ Login → sets secure cookie
-3. ✅ Hit protected route → verifies access
-4. ✅ Logout → clears session
+3. ✅ Access protected route → verifies JWT & access
+4. ✅ Logout → clears session cookie
 
 ---
 
 ## Tech Stack
 
 * **Frontend**: React + Vite + TailwindCSS
-* **Backend**: Express.js + JWT Auth
-* **Optional DB**: MongoDB via Mongoose
-* **Security**: Helmet, Rate Limiting, CORS
-* **Storage**: JWTs in HttpOnly cookies
-* **Communication**: Axios w/ credentials
+* **Backend**: Express.js + JWT Authentication
+* **Database**: Optional MongoDB with Mongoose
+* **Security**: Helmet, Rate Limiting, CORS configured
+* **Storage**: JWT tokens stored in HttpOnly cookies
+* **Communication**: Axios with credentials support
 
 ---
 
 ## TODO / Suggestions
 
 * Add input validation (frontend + backend)
-* Swap in MongoDB
-* Add role-based access
-* Refactor routes and APIs
+* Add role-based access control
+* Improve UI/UX with loading spinners and error states
+* Refactor routes and modularize APIs further
 
 ---
 
-## Final Notes
+## Notes
 
-If you get a **403 error on Port, try changing backend port:
-
-* `.env`
-* `vite.config.js` proxy
+If you see **CORS or 403 errors**, verify ports and proxy settings:
 
 ```js
 // vite.config.js
-server: {
-  proxy: {
-    '/api': 'http://localhost:5050',
-  }
-}
+export default {
+  server: {
+    proxy: {
+      '/api': 'http://localhost:5050',
+    },
+  },
+};
 ```
+
+Make sure your backend and frontend ports align with `.env` and config files.
 
 ---
 
 ## License
 
-MIT – use, remix, and build on it freely.
+MIT — free to use, remix, and build on.
