@@ -1,33 +1,45 @@
-import { useState } from 'react';
-import {
-  register,
-  login,
-  logout,
-  checkAccess,
-  testApi,
-} from '../services/authService';
-import AuthForm from '../components/authForm';
-import MessageBox from '../components/messageBox';
+import { useEffect, useState } from 'react';
+import { register, login, logout, checkAccess, testApi } from '../services/authService';
+import AuthForm from '../components/AuthForm';
+import MessageBox from '../components/MessageBox';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const [form, setForm] = useState({ username: '', password: '' });
   const [message, setMessage] = useState('');
+  const [hasAccess, setHasAccess] = useState(false);
+  const navigate = useNavigate();
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handle = async (actionFn) => {
     try {
       const res = await actionFn(form);
       setMessage(res.data.message);
+      if (actionFn === login) {
+        await checkAccessNow();
+      }
+      if (actionFn === logout) {
+        setHasAccess(false);
+      }
     } catch (err) {
-      const errMsg =
-        err?.response?.data?.error ||
-        err?.response?.data?.errors?.[0]?.msg ||
-        'Action failed';
+      const errMsg = err?.response?.data?.error || 'Action failed';
       setMessage(errMsg);
     }
   };
+
+  const checkAccessNow = async () => {
+    try {
+      await checkAccess();
+      setHasAccess(true);
+    } catch {
+      setHasAccess(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAccessNow();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
@@ -38,21 +50,18 @@ const HomePage = () => {
       <AuthForm form={form} onChange={handleChange} />
 
       <div className="flex flex-wrap gap-2 mt-4">
-        <button onClick={() => handle(testApi)} className="btn-blue">
-          Test API
-        </button>
-        <button onClick={() => handle(register)} className="btn-blue">
-          Register
-        </button>
-        <button onClick={() => handle(login)} className="btn-green">
-          Login
-        </button>
-        <button onClick={() => handle(() => logout())} className="btn-yellow">
-          Logout
-        </button>
-        <button onClick={() => handle(() => checkAccess())} className="btn-purple">
-          Check Access
-        </button>
+        <button onClick={() => handle(testApi)} className="btn-blue">Test API</button>
+        <button onClick={() => handle(register)} className="btn-blue">Register</button>
+        <button onClick={() => handle(login)} className="btn-green">Login</button>
+        <button onClick={() => handle(() => logout())} className="btn-yellow">Logout</button>
+
+        <button onClick={() => handle(() => checkAccess())} className="btn-purple">Check Access</button>
+
+        {hasAccess && (
+          <>
+            <button onClick={() => navigate('/protected')} className="btn-purple">Go to Protected Page</button>
+          </>
+        )}
       </div>
 
       <MessageBox message={message} />
