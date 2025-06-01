@@ -4,15 +4,14 @@
 ```
 express-react-secured-boilerplate/
 ├── backend/
-│   ├── controllers/         # Logic for auth
-│   ├── middleware/          # Auth guard, etc.
-│   ├── models/              # (For MongoDB use)
+│   ├── controllers/        # Auth logic abstraction
+│   ├── middleware/         # JWT middleware, guards
+│   ├── models/             # MongoDB (Mongoose models)
+│   ├── services/           # Separate memory-db logics
 │   ├── routes/
-│   │   ├── auth.js          # Simple/in-memory auth
-│   │   └── auth-mongo.js    # MongoDB-based version
-│   ├── index.js             # Entry for in-memory auth
-│   └── index-mongo.js       # Entry for MongoDB setup
-│
+│   │   ├── auth.js         # auth routes
+│   ├── index.js            # Unified entry (Mongo or in-memory)
+│   └── ...
 └── frontend/
 ├── src/
 │   ├── assets/
@@ -20,9 +19,12 @@ express-react-secured-boilerplate/
 │   ├── pages/
 │   └── services/        # Axios and API helpers
 ```
+
 ---
 
-### 1. Install deps
+## Setup
+
+### 1. Install dependencies
 
 ```bash
 # Backend
@@ -32,38 +34,42 @@ npm install
 # Frontend
 cd frontend
 npm install
-````
+```
 
 ---
 
-### 2. Set up `.env`
-
-Create a `.env` file inside `backend/`:
+### 2. Create a `.env` in `/backend`
 
 ```env
 PORT=5050
 JWT_SECRET=your_secret_key
+USE_MONGO=false
+MONGO_URI=mongodb://localhost:27017/secure-auth
 NODE_ENV=development
-MONGO_URI=MONGO_URI
 ```
+
+Set `USE_MONGO=true` to enable MongoDB.
 
 ---
 
-### 3. Choose your backend mode
+### 3. Run the servers
 
-#### Option 1: In-memory (no DB, quick testing)
+#### Option A: In-memory mode
 
 ```bash
+# Uses array-based user storage
+cd backend
 node index.js
 ```
 
-#### Option 2: MongoDB (persistent users)
-
-Update `.env` with your Mongo URI and run:
+#### Option B: MongoDB mode
 
 ```bash
-node index-mongo.js
+# Requires Mongo running locally or remotely
+USE_MONGO=true node index.js
 ```
+
+> You can also set `USE_MONGO=true` in your `.env`.
 
 ---
 
@@ -78,44 +84,43 @@ Visit: [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## API Routes
+## API Routes Overview
 
-All routes are prefixed with `/api/auth`
+### `/api/auth` (Authentication)
 
-| Method | Endpoint     | Description        |
-| ------ | ------------ | ------------------ |
-| POST   | `/register`  | Register user      |
-| POST   | `/login`     | Log in, set cookie |
-| POST   | `/logout`    | Clear auth cookie  |
+| Method | Route     | Description              |
+| ------ | --------- | ------------------------ |
+| POST   | /register | Register new user        |
+| POST   | /login    | Login user (sets cookie) |
+| POST   | /logout   | Clear auth cookie        |
 
+### `/api/protected` (Guarded)
 
-All routes are prefixed with `/api/protected`
+| Method | Route      | Description              |
+| ------ | ---------- | ------------------------ |
+| GET    | /hasAccess | Protected resource (JWT) |
 
-| Method | Endpoint     | Description        |
-| ------ | ------------ | ------------------ |
-| GET    | `/hasAccess` | Protected resource |
+> ✅ Cookies are `HttpOnly`, `SameSite=Strict`, and sent with requests (`withCredentials: true`).
 
 ---
 
-## How to Test
+## Test Flow
 
-1. Register → should see success
-2. Login → sets JWT cookie
-3. Hit "Protected" → should return secure message
-4. Logout → clears cookie
-
-> Axios is already set to send cookies: `withCredentials: true`
+1. ✅ Register → creates user
+2. ✅ Login → sets secure cookie
+3. ✅ Hit protected route → verifies access
+4. ✅ Logout → clears session
 
 ---
 
 ## Tech Stack
 
-* Vite + React
-* Express + Node.js
-* TailwindCSS
-* JWT (cookie-based)
-* MongoDB-ready (optional)
-* Axios with cookie support
+* **Frontend**: React + Vite + TailwindCSS
+* **Backend**: Express.js + JWT Auth
+* **Optional DB**: MongoDB via Mongoose
+* **Security**: Helmet, Rate Limiting, CORS
+* **Storage**: JWTs in HttpOnly cookies
+* **Communication**: Axios w/ credentials
 
 ---
 
@@ -137,8 +142,10 @@ If you get a **403 error on Port, try changing backend port:
 
 ```js
 // vite.config.js
-proxy: {
-  '/api': 'http://localhost:5050'
+server: {
+  proxy: {
+    '/api': 'http://localhost:5050',
+  }
 }
 ```
 
